@@ -4,52 +4,69 @@ services:
       context: .
     container_name: onlyoffice-documentserver
     depends_on:
-      - onlyoffice-postgresql
+      # - onlyoffice-postgresql
       - onlyoffice-rabbitmq
     environment:
       - DB_TYPE=postgres
-      - DB_HOST=onlyoffice-postgresql
-      - DB_PORT=5432
-      - DB_NAME=onlyoffice
-      - DB_USER=onlyoffice
+      - DB_HOST=${ONLYOFFICE_DB_HOST}
+      - DB_PORT=${ONLYOFFICE_DB_PORT}
+      - DB_NAME=${ONLYOFFICE_DB_NAME}
+      - DB_USER=${ONLYOFFICE_DB_USER}
+      - DB_PWD=${ONLYOFFICE_DB_PWD}
       - AMQP_URI=amqp://guest:guest@onlyoffice-rabbitmq
       # Uncomment strings below to enable the JSON Web Token validation.
       #- JWT_ENABLED=true
       #- JWT_SECRET=secret
       #- JWT_HEADER=Authorization
       #- JWT_IN_BODY=true
-    ports:
-      - '80:80'
-      - '443:443'
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
+    expose:
+      - "80"
+      - "443"
     stdin_open: true
     restart: always
     stop_grace_period: 60s
     volumes:
-       - /var/www/onlyoffice/Data
-       - /var/log/onlyoffice
-       - /var/lib/onlyoffice/documentserver/App_Data/cache/files
-       - /var/www/onlyoffice/documentserver-example/public/files
-       - /usr/share/fonts
-       
+      - /var/www/onlyoffice/Data
+      - /var/log/onlyoffice
+      - /var/lib/onlyoffice/documentserver/App_Data/cache/files
+      - /var/www/onlyoffice/documentserver-example/public/files
+      - /usr/share/fonts
+    networks:
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.onlyoffice-documentserver.rule=Host(`office.example.com`)
+      - traefik.http.routers.onlyoffice-documentserver.entrypoints=websecure
+      - traefik.http.routers.onlyoffice-documentserver.tls=true
+      - traefik.http.routers.onlyoffice-documentserver.tls.certresolver=le
+      - traefik.http.services.onlyoffice-documentserver.loadbalancer.server.port=80
+
   onlyoffice-rabbitmq:
     container_name: onlyoffice-rabbitmq
     image: rabbitmq
     restart: always
     expose:
-      - '5672'
+      - "5672"
 
-  onlyoffice-postgresql:
-    container_name: onlyoffice-postgresql
-    image: postgres:12
-    environment:
-      - POSTGRES_DB=onlyoffice
-      - POSTGRES_USER=onlyoffice
-      - POSTGRES_HOST_AUTH_METHOD=trust
-    restart: always
-    expose:
-      - '5432'
-    volumes:
-      - postgresql_data:/var/lib/postgresql
+networks:
+  default:
+    external: true
+    name: proxy
+#   onlyoffice-postgresql:
+#     container_name: onlyoffice-postgresql
+#     image: postgres:12
+#     environment:
+#       - POSTGRES_DB=onlyoffice
+#       - POSTGRES_USER=onlyoffice
+#       - POSTGRES_HOST_AUTH_METHOD=trust
+#     restart: always
+#     expose:
+#       - '5432'
+#     volumes:
+#       - postgresql_data:/var/lib/postgresql
 
-volumes:
-  postgresql_data:
+# volumes:
+#   postgresql_data:
