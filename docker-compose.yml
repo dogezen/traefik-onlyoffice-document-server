@@ -38,7 +38,7 @@ services:
       - default
     labels:
       - traefik.enable=true
-      - traefik.http.routers.onlyoffice-documentserver.rule=Host(`office.example.com`)
+      - traefik.http.routers.onlyoffice-documentserver.rule=Host(`${CONTAINER_HOST}`)
       - traefik.http.routers.onlyoffice-documentserver.entrypoints=websecure
       - traefik.http.routers.onlyoffice-documentserver.tls=true
       - traefik.http.routers.onlyoffice-documentserver.tls.certresolver=le
